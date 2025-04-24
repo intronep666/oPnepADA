@@ -1,111 +1,75 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 
-typedef pair<int, int> Pair; // (profit, weight)
-void Traceback(int Px, int Wx, int n, vector<set<Pair>> &S, vector<int> &wt, vector<int> &val) {
-    for(int i = n; i >= 1; i--) {
-        int prevP = Px - val[i - 1];
-        int prevW = Wx - wt[i - 1];
+using PII = pair<int, int>; // (value, weight)
 
-        if (S[i - 1].count({Px, Wx})) {
-            cout << "x" << i << " = 0" << endl;  // item not taken
-        } else if (S[i - 1].count({prevP, prevW})) {
-            cout << "x" << i << " = 1" << endl;  // item taken
-            Px = prevP;
-            Wx = prevW;
+// Function to reconstruct which items were selected
+void Backtrack(int finalVal, int finalWt, int itemCount, vector<set<PII>> &states, vector<int> &weights, vector<int> &values) {
+    for (int i = itemCount; i >= 1; --i) {
+        int priorVal = finalVal - values[i - 1];
+        int priorWt = finalWt - weights[i - 1];
+
+        if (states[i - 1].count({finalVal, finalWt})) {
+            cout << "x" << i << " = 0\n"; // item not chosen
+        } else if (states[i - 1].count({priorVal, priorWt})) {
+            cout << "x" << i << " = 1\n"; // item chosen
+            finalVal = priorVal;
+            finalWt = priorWt;
         } else {
-            cout << "Error: no matching previous state found for item " << i << endl;
+            cout << "Trace error at item " << i << endl;
         }
     }
 }
-set<Pair>mergePurge(set<Pair> &a,set<Pair> &b){
-    set<Pair>combined = a;
-    for(auto p :b){
-        combined.insert(p);
+
+// Function to merge and filter states to avoid dominated ones
+set<PII> combineAndPrune(set<PII> &setA, set<PII> &setB) {
+    set<PII> merged = setA;
+    for (const auto &entry : setB) {
+        merged.insert(entry);
     }
 
-    set<Pair>result;
-    int maxProfit = -1;
-    for(auto p : combined){
-      if(p.first > maxProfit){
-        result.insert({p.first,p.second});
-        maxProfit = p.first;
-      }
+    set<PII> pruned;
+    int maxVal = -1;
+    for (const auto &entry : merged) {
+        if (entry.first > maxVal) {
+            pruned.insert(entry);
+            maxVal = entry.first;
+        }
     }
-    return result;
-
+    return pruned;
 }
-void knapsack(vector<int> &wt,vector<int> &val,int W){
-    int n = wt.size();
-    vector<set<Pair>>S(n+1);
-    S[0].insert({0,0});
-    for(int i = 1;i<=n;i++){
-        set<Pair>S1;
-        for(auto p : S[i-1]){
-            int newW = p.second + wt[i-1];
-            int newP = p.first + val[i-1];
-            if(newW <= W){
-                S1.insert({newP,newW});
+
+// Main knapsack algorithm
+void solveKnapsack(vector<int> &weights, vector<int> &values, int capacity) {
+    int n = weights.size();
+    vector<set<PII>> dp(n + 1);
+    dp[0].insert({0, 0});
+
+    for (int i = 1; i <= n; ++i) {
+        set<PII> newStates;
+        for (const auto &state : dp[i - 1]) {
+            int updatedWt = state.second + weights[i - 1];
+            int updatedVal = state.first + values[i - 1];
+            if (updatedWt <= capacity) {
+                newStates.insert({updatedVal, updatedWt});
             }
         }
-        S[i] = mergePurge(S[i-1],S1);
+        dp[i] = combineAndPrune(dp[i - 1], newStates);
     }
-    
-    auto it = S[n].rbegin(); // last element in the set (max profit)
-    int Px = it->first;
-    int Wx = it->second;
-    cout<<"Maximum profit is:"<<Px<<endl;
-    Traceback(Px,Wx,n,S,wt,val);
 
+    auto best = dp[n].rbegin();
+    int bestVal = best->first;
+    int bestWt = best->second;
 
+    cout << "Maximum profit: " << bestVal << endl;
+    Backtrack(bestVal, bestWt, n, dp, weights, values);
 }
 
-int main()
-{
-    vector<int> wt = {5, 4, 6, 3};
-    vector<int> val = {10, 40, 30, 50};
-    int W = 10;
+int main() {
+    vector<int> weights = {5, 4, 6, 3};
+    vector<int> values = {10, 40, 30, 50};
+    int capacity = 10;
 
-   knapsack(wt, val, W) ;
+    solveKnapsack(weights, values, capacity);
     return 0;
 }
-
-
-
-//Method -2
-// int knapsack(vector<int>& wt, vector<int>& val, int W){
-//     int n = wt.size();
-//     vector<set<pair<int,int>>> S(n + 1);
-//     S[0].insert({0, 0}); // (value, weight)
-
-//     for(int i = 0; i < n; i++){
-//         S[i+1] = S[i]; // Start with previous values
-//         for(auto p : S[i]){
-//             int new_val = p.first + val[i];
-//             int new_wt = p.second + wt[i];
-//             if(new_wt <= W){
-//                 S[i+1].insert({new_val, new_wt});
-//             }
-//         }
-
-//         // Prune dominated pairs
-//         set<pair<int, int>> pruned;
-//         int min_wt = INT_MAX;
-//         for(auto it = S[i+1].rbegin(); it != S[i+1].rend(); ++it){
-//             if(it->second < min_wt){
-//                 pruned.insert(*it);
-//                 min_wt = it->second;
-//             }
-//         }
-//         S[i+1] = pruned;
-//     }
-
-//     // Find max value with weight <= W
-//     int max_val = 0;
-//     for(auto p : S[n]){
-//         if(p.second <= W){
-//             max_val = max(max_val, p.first);
-//         }
-//     }
-//     return max_val;
-// }
