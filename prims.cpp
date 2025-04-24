@@ -1,81 +1,82 @@
 #include <iostream>
 #include <vector>
-#include <climits>
+#include <limits>
 
 using namespace std;
 
-void primsNear(int n, vector<vector<int>> &cost) {
-    vector<int> near(n, INT_MAX);  // Near array
-    vector<pair<int, int>> MST;    // Store MST edges
-    int minCost = 0;
+void primUsingNearArray(int vertices, vector<vector<int>> &graph) {
+    vector<int> nearest(vertices, numeric_limits<int>::max());  // Array to track nearest selected vertex
+    vector<pair<int, int>> mstEdges;  // Stores edges in the MST
+    int totalCost = 0;
 
-    // Step 1: Find the first minimum cost edge
-    int u = -1, v = -1, minEdge = INT_MAX;
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1; j < n; j++) {
-            if (cost[i][j] < minEdge) {
-                minEdge = cost[i][j];
-                u = i;
-                v = j;
+    // Step 1: Identify the smallest edge to start the MST
+    int start = -1, end = -1, smallestEdge = numeric_limits<int>::max();
+    for (int i = 0; i < vertices; i++) {
+        for (int j = i + 1; j < vertices; j++) {
+            if (graph[i][j] < smallestEdge) {
+                smallestEdge = graph[i][j];
+                start = i;
+                end = j;
             }
         }
     }
 
-    MST.push_back({u, v});
-    minCost += minEdge;
-    
-    // Step 2: Initialize Near Array
-    for (int i = 0; i < n; i++) {
-        if (cost[i][u] < cost[i][v]) {
-            near[i] = u;
-        } else {
-            near[i] = v;
-        }
+    mstEdges.emplace_back(start, end);
+    totalCost += smallestEdge;
+
+    // Step 2: Initialize nearest array
+    for (int i = 0; i < vertices; i++) {
+        if (graph[i][start] < graph[i][end])
+            nearest[i] = start;
+        else
+            nearest[i] = end;
     }
-    near[u] = near[v] = -1; // Mark included vertices
 
-    // Step 3: Add remaining n-2 edges
-    for (int i = 1; i < n - 1; i++) {
-        int next = -1, minVal = INT_MAX;
+    nearest[start] = nearest[end] = -1;  // Mark start and end as added to MST
 
-        // Find the next minimum cost edge
-        for (int j = 0; j < n; j++) {
-            if (near[j] != -1 && cost[j][near[j]] < minVal) {
-                minVal = cost[j][near[j]];
-                next = j;
+    // Step 3: Add remaining edges to MST
+    for (int count = 1; count < vertices - 1; count++) {
+        int nextVertex = -1, minConnection = numeric_limits<int>::max();
+
+        // Find the next closest vertex to the MST
+        for (int i = 0; i < vertices; i++) {
+            if (nearest[i] != -1 && graph[i][nearest[i]] < minConnection) {
+                minConnection = graph[i][nearest[i]];
+                nextVertex = i;
             }
         }
 
-        MST.push_back({next, near[next]});
-        minCost += cost[next][near[next]];
-        near[next] = -1; // Mark included vertex
+        mstEdges.emplace_back(nextVertex, nearest[nextVertex]);
+        totalCost += graph[nextVertex][nearest[nextVertex]];
+        nearest[nextVertex] = -1;
 
-        // Update Near Array
-        for (int j = 0; j < n; j++) {
-            if (near[j] != -1 && cost[j][next] < cost[j][near[j]]) {
-                near[j] = next;
+        // Update nearest array based on newly added vertex
+        for (int i = 0; i < vertices; i++) {
+            if (nearest[i] != -1 && graph[i][nextVertex] < graph[i][nearest[i]]) {
+                nearest[i] = nextVertex;
             }
         }
     }
 
-    // Print the MST
-    cout << "Minimum Spanning Tree (MST):\n";
-    for (int i = 0; i < MST.size(); i++) {
-        cout << MST[i].first << " - " << MST[i].second << "\n";
+    // Output MST and its total cost
+    cout << "Edges in the Minimum Spanning Tree:\n";
+    for (const auto &edge : mstEdges) {
+        cout << edge.first << " - " << edge.second << '\n';
     }
-    cout << "Total Minimum Cost: " << minCost << endl;
+    cout << "Total Cost of MST: " << totalCost << '\n';
 }
 
 int main() {
-    int n = 5; // Number of vertices
-    vector<vector<int>> cost = {
-        {INT_MAX, 2, INT_MAX, 6, INT_MAX},
-        {2, INT_MAX, 3, 8, 5},
-        {INT_MAX, 3, INT_MAX, INT_MAX, 7},
-        {6, 8, INT_MAX, INT_MAX, 9},
-        {INT_MAX, 5, 7, 9, INT_MAX}
+    int numVertices = 5;
+    vector<vector<int>> adjacencyMatrix = {
+        {numeric_limits<int>::max(), 2, numeric_limits<int>::max(), 6, numeric_limits<int>::max()},
+        {2, numeric_limits<int>::max(), 3, 8, 5},
+        {numeric_limits<int>::max(), 3, numeric_limits<int>::max(), numeric_limits<int>::max(), 7},
+        {6, 8, numeric_limits<int>::max(), numeric_limits<int>::max(), 9},
+        {numeric_limits<int>::max(), 5, 7, 9, numeric_limits<int>::max()}
     };
 
-    primsNear(n, cost);
+    primUsingNearArray(numVertices, adjacencyMatrix);
+
     return 0;
 }
