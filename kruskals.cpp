@@ -1,83 +1,81 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <queue>
 using namespace std;
 
-class DSU{
-    vector<int>p;
-    public:
-    DSU(int n)
-    {   p.resize(n);
-        for(int i=0;i<n;i++)
-        {
-            p[i]=-1;
-        }
+// Disjoint Set Union class with path compression and union by size
+class UnionFind {
+    vector<int> parent;
+
+public:
+    UnionFind(int size) {
+        parent.assign(size, -1);
     }
 
-    int find(int u) {
-        if (p[u] < 0) return u;  
-        return p[u] = find(p[u]);  // Path compression
+    int findRoot(int x) {
+        if (parent[x] < 0) return x;
+        return parent[x] = findRoot(parent[x]);
     }
-    
-    //Union by size
-    bool unionSet(int u, int v) {
-        int rootU = find(u);
-        int rootV = find(v);
-                
-        if (rootU == rootV) return false; // Already connected
 
-        if (p[rootU] < p[rootV]) {  // rootU ka size bada hai
-            p[rootU] += p[rootV];
-            p[rootV] = rootU;
+    bool merge(int a, int b) {
+        int rootA = findRoot(a);
+        int rootB = findRoot(b);
+
+        if (rootA == rootB) return false; // Same component
+
+        if (parent[rootA] < parent[rootB]) {
+            parent[rootA] += parent[rootB];
+            parent[rootB] = rootA;
         } else {
-            p[rootV] += p[rootU];
-            p[rootU] = rootV;
+            parent[rootB] += parent[rootA];
+            parent[rootA] = rootB;
         }
+
         return true;
     }
 };
 
-// Custom Comparator for Min-Heap
-struct Compare {
-    bool operator()(vector<int>& a, vector<int>& b) {
-        return a[0] > b[0]; // Min-Heap based on weight
+// Comparator for priority queue (min-heap based on edge weights)
+struct EdgeComp {
+    bool operator()(const vector<int>& a, const vector<int>& b) {
+        return a[0] > b[0]; // Lower weight gets higher priority
     }
 };
 
+// Kruskal's Minimum Spanning Tree Algorithm
+void buildMST(int vertices, vector<vector<int>>& edgeList) {
+    priority_queue<vector<int>, vector<vector<int>>, EdgeComp> pq(edgeList.begin(), edgeList.end());
 
-// Kruskal’s Algorithm for MST
-void kruskalMST(int n,vector<vector<int>>&edges){
-    priority_queue<vector<int>,vector<vector<int>>,Compare>minHeap(edges.begin(),edges.end());
+    UnionFind uf(vertices);
+    int totalCost = 0, connectedEdges = 0;
 
-    DSU dsu(n);
-    int minCost =0, edgesUsed =0;
+    while (!pq.empty() && connectedEdges < vertices - 1) {
+        auto current = pq.top();
+        pq.pop();
 
-    while(!minHeap.empty()&&edgesUsed < n-1){
-        auto edge = minHeap.top();
-        minHeap.pop();
+        int cost = current[0], from = current[1], to = current[2];
 
-        int w = edge[0], u = edge[1], v = edge[2];
-
-        if(dsu.unionSet(u,v)){ // If adding this edge doesn’t create a cycle
-         minCost+=w;
-         edgesUsed++;
-         cout<< "Edges: (" << u <<"-"<<v<<") with cost:"<<w<<endl;
+        if (uf.merge(from, to)) {
+            cout << "Selected Edge: (" << from << " - " << to << ") Cost: " << cost << "\n";
+            totalCost += cost;
+            connectedEdges++;
         }
     }
-    if (edgesUsed == n - 1)
-        cout << "Minimum Spanning Tree Cost: " << minCost << endl;
+
+    if (connectedEdges == vertices - 1)
+        cout << "Total Minimum Cost to Connect All Nodes: " << totalCost << endl;
     else
-        cout << "MST not possible!" << endl;
+        cout << "Failed to construct MST - Graph may be disconnected." << endl;
 }
 
-
 int main() {
-    int n = 5; // Number of vertices
-    vector<vector<int>> edges = {
-        {2, 0, 1}, {3, 1, 2}, {7, 2, 4}, {5, 1, 4}, {9, 3, 4}, {6, 0, 3}, {8, 1, 3}
+    int numNodes = 5;
+    vector<vector<int>> allEdges = {
+        {2, 0, 1}, {3, 1, 2}, {7, 2, 4}, {5, 1, 4}, 
+        {9, 3, 4}, {6, 0, 3}, {8, 1, 3}
     };
 
-    kruskalMST(n, edges);
+    buildMST(numNodes, allEdges);
 
     return 0;
 }
-
-//Time Complexity
