@@ -1,52 +1,58 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
-struct Item{
-    int profit,weight;
+// Struct to represent an object with value and weight
+struct Object {
+    int value;
+    int weight;
 };
 
-bool compare(Item a, Item b ){
-    double r1 = (double)a.profit/a.weight;
-    double r2 = (double)b.profit/b.weight;
-    return r1>r2;
+// Custom comparator to sort objects by decreasing value-to-weight ratio
+bool byRatio(const Object& x, const Object& y) {
+    return (double)x.value / x.weight > (double)y.value / y.weight;
 }
 
-void knapsack(vector<Item>Items,int capacity){
-    //sort kar do profit/weight ratio ke accoding decreasing order me 
-    sort(Items.begin(),Items.end(),compare);
+// Function to perform fractional knapsack
+void solveKnapsack(const vector<Object>& objects, int maxWeight) {
+    vector<Object> items = objects; // Copy input to avoid modifying original
+    sort(items.begin(), items.end(), byRatio); // Sort items by value density
 
-    double totalprofit = 0.0;
-    int currentweight =0;
-   for(int i =0;i<Items.size();i++){
-      if(currentweight + Items[i].weight <= capacity ){
-        //pura item le lo
-        totalprofit = totalprofit + Items[i].profit;
-        currentweight = currentweight + Items[i].weight;
-        cout << "Profit: " << Items[i].profit << ", Weight: " << Items[i].weight << " (Full)\n";
-      }
-      else{
-        //fractional part le lo agar pura nahi le sakte to
-        int remainweight = capacity - currentweight;
-        double fraction_profit = Items[i].profit * ((double)remainweight / Items[i].weight);
-        totalprofit = totalprofit + fraction_profit;
-        cout << "Profit: " << fraction_profit << ", Weight: " << remainweight << " (Fraction)\n";
-        break;//knapsack full ho gya
-      }
-   }
-   cout << "Total Profit: " << totalprofit << endl;
+    double profitCollected = 0.0;
+    int weightUsed = 0;
+
+    cout << "Items taken:\n";
+
+    for (const auto& obj : items) {
+        if (weightUsed + obj.weight <= maxWeight) {
+            // Take full item
+            profitCollected += obj.value;
+            weightUsed += obj.weight;
+            cout << "  Value: " << obj.value << ", Weight: " << obj.weight << " [Full]\n";
+        } else {
+            // Take fractional item
+            int spaceLeft = maxWeight - weightUsed;
+            double partValue = obj.value * ((double)spaceLeft / obj.weight);
+            profitCollected += partValue;
+            cout << "  Value: " << partValue << ", Weight: " << spaceLeft << " [Partial]\n";
+            break; // Knapsack is full
+        }
+    }
+
+    cout << "Maximum Profit Obtained: " << profitCollected << endl;
 }
 
-int main(){
-    vector<Item> Items = {{25,18},{24,15},{15,10}};
+int main() {
+    vector<Object> data = {
+        {25, 18},
+        {24, 15},
+        {15, 10}
+    };
 
-    knapsack(Items,20);
+    int knapsackCapacity = 20;
+    solveKnapsack(data, knapsackCapacity);
+
+    return 0;
 }
-
-
-
-
-
-
-
-
-
