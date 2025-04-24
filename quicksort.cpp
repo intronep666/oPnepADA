@@ -1,64 +1,68 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <chrono>
+
 using namespace std;
 
-#include <bits/stdc++.h>
-using namespace std;
+// Rearranges the array and returns the pivot index
+int performPartition(long int data[], int start, int end) {
+    long int pivot = data[start];
+    int left = start;
+    int right = end;
 
-int partition(long int arr[], int low, int high) {
-    long int pivot = arr[low];
-   long int i = low;
-    long int j = high;
-
-    while (i < j) {
-        while (arr[i] <= pivot && i <= high - 1) {
-            i++;
+    while (left < right) {
+        while (data[left] <= pivot && left <= end - 1) {
+            left++;
         }
-
-        while (arr[j] > pivot && j >= low + 1) {
-            j--;
+        while (data[right] > pivot && right >= start + 1) {
+            right--;
         }
-        if (i < j) swap(arr[i], arr[j]);
+        if (left < right) {
+            swap(data[left], data[right]);
+        }
     }
-    swap(arr[low], arr[j]);
-    return j;
+
+    swap(data[start], data[right]);
+    return right;
 }
 
-void quickSort(long int arr[], int low, int high) {
-    if (low < high) {
-        int pIndex = partition(arr, low, high);
-        quickSort(arr, low, pIndex - 1);
-        quickSort(arr, pIndex + 1, high);
-        
+// Recursive implementation of quicksort
+void executeQuickSort(long int data[], int start, int end) {
+    if (start < end) {
+        int pivotIndex = performPartition(data, start, end);
+        executeQuickSort(data, start, pivotIndex - 1);
+        executeQuickSort(data, pivotIndex + 1, end);
     }
 }
 
 int main() {
-    srand(time(0)); // Seed for random numbers
+    srand(static_cast<unsigned>(time(0))); // Initialize random seed
 
-    int n = 1000;
-    while (n <= 25000) {
-        double totalTime = 0.0;
+    int size = 1000;
+    while (size <= 25000) {
+        double totalDuration = 0.0;
 
-        for (int i = 1; i <= 10; i++) {
-            long int arr[n];
-            
-            // Generate random array of size n
-            for (int j = 0; j < n; j++) {
-                arr[j] = rand() % n + 1;
+        for (int iteration = 0; iteration < 10; ++iteration) {
+            long int dataset[size];
+
+            // Populate the array with random values
+            for (int i = 0; i < size; ++i) {
+                dataset[i] = rand() % size + 1;
             }
 
-            auto start = chrono::high_resolution_clock::now();
-            quickSort(arr, 0, n - 1);
-            auto end = chrono::high_resolution_clock::now();
+            // Measure sorting time
+            auto begin = chrono::high_resolution_clock::now();
+            executeQuickSort(dataset, 0, size - 1);
+            auto finish = chrono::high_resolution_clock::now();
 
-            chrono::duration<double> duration = end - start;
-            totalTime += duration.count();
+            chrono::duration<double> elapsed = finish - begin;
+            totalDuration += elapsed.count();
         }
 
-        double avgTime = totalTime / 10;
-        cout << "Size: " << n << ", Time: " << avgTime << " seconds" << endl;
+        double averageTime = totalDuration / 10.0;
+        cout << "Array Size: " << size << ", Average Time: " << averageTime << " seconds" << endl;
 
-        n += 1000; // Increment n properly
+        size += 1000; // Increase size for next test
     }
 
     return 0;
