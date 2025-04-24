@@ -1,42 +1,41 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-//find a peak element in an array
-//1. brute force approach using linear search
-// int peak(int*arr,int n){
-// for(int i=0;i<n;i++)
-// {
-//     if((i==0||arr[i-1]<arr[i])&&(i==n-1||arr[i]>arr[i+1]))
-//     return i;
-// }
-// return -1;
-// }
 
-//2.Optimized approach using Binary search
-int peak(int*arr,int n)
-{
-    if(n==1)return 0;
-    if(arr[0]>arr[1])return 0;
-    if(arr[n-1]>arr[n-2])return n-1;
-    int low = 1; int high = n-2;
-    while(low<=high)
-    {
-        int mid = (low+high)/2;
-        if((arr[mid]>arr[mid-1])&&(arr[mid]>arr[mid+1]))return mid;
-        else if(arr[mid]>arr[mid-1]){
-            low = mid+1;
-        }
-        else{
-            high = mid-1;
-        }
+// Function to locate a peak element using binary search
+int findPeakElement(int arr[], int size) {
+    // Edge cases: first and last elements
+    if (size == 1) return 0;
+    if (arr[0] > arr[1]) return 0;
+    if (arr[size - 1] > arr[size - 2]) return size - 1;
+
+    int start = 1, end = size - 2;
+
+    while (start <= end) {
+        int middle = start + (end - start) / 2;
+
+        if (arr[middle] > arr[middle - 1] && arr[middle] > arr[middle + 1])
+            return middle;
+
+        // If right neighbor is greater, search right half
+        if (arr[middle] < arr[middle + 1])
+            start = middle + 1;
+        else
+            end = middle - 1;
     }
-    return -1;
+
+    return -1; // Should not be reached for valid input
 }
 
-int main()
-{
-   int arr[5]= {11,13,20,25,18} ;
-   int res= peak(arr,5);
-   cout<<"Result is= "<<arr[res]<<endl;
+int main() {
+    int nums[] = {11, 13, 20, 25, 18};
+    int len = sizeof(nums) / sizeof(nums[0]);
 
-   return 0;
+    int index = findPeakElement(nums, len);
+
+    if (index != -1)
+        cout << "Peak element found: " << nums[index] << endl;
+    else
+        cout << "No peak element found!" << endl;
+
+    return 0;
 }
