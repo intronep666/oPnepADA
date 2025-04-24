@@ -7,164 +7,157 @@
 
 using namespace std;
 
-// Function to merge unique words from two files and write them to output
-void mergeUniqueWords(const string& file1, const string& file2, const string& outputFile, const string& uniqueFile) {
-    ifstream inputFile1(file1);
-    ifstream inputFile2(file2);
-    ofstream output(outputFile);
-    ofstream uniqueOutput(uniqueFile);
+// Combines all words from two files and records unique ones separately
+void combineFiles(const string& path1, const string& path2, const string& mergedPath, const string& uniquePath) {
+    ifstream fin1(path1), fin2(path2);
+    ofstream foutMerged(mergedPath), foutUnique(uniquePath);
 
-    if (!inputFile1 || !inputFile2 || !output || !uniqueOutput) {
-        cerr << "Error: Unable to open one or more files!" << endl;
+    if (!fin1 || !fin2 || !foutMerged || !foutUnique) {
+        cerr << "File access error!\n";
         return;
     }
-    
-    unordered_set<string> uniqueWords;
-    string word;
 
-    while (inputFile1 >> word) {
-        output << word << " ";
-        uniqueWords.insert(word);
+    unordered_set<string> uniqueSet;
+    string token;
+
+    while (fin1 >> token) {
+        foutMerged << token << " ";
+        uniqueSet.insert(token);
     }
 
-    while (inputFile2 >> word) {
-        output << word << " ";
-        uniqueWords.insert(word);
+    while (fin2 >> token) {
+        foutMerged << token << " ";
+        uniqueSet.insert(token);
     }
 
-    for (const string& word : uniqueWords) {
-        uniqueOutput << word << "\n";
+    for (const auto& uword : uniqueSet) {
+        foutUnique << uword << "\n";
     }
 
-    cout << "Merged words saved to '" << outputFile << "'\n";
-    cout << "Unique words saved to '" << uniqueFile << "'\n";
+    cout << "Merged content saved to: " << mergedPath << "\n";
+    cout << "Unique words stored in: " << uniquePath << "\n";
 }
 
-// Function to count words in a file
-int countWordsInFile(const string& filename) {
-    ifstream file(filename);
+// Counts the number of words in a given file
+int wordCount(const string& fileName) {
+    ifstream file(fileName);
     if (!file) {
-        cerr << "Error: Unable to open file: " << filename << endl;
+        cerr << "Failed to open " << fileName << "\n";
         return -1;
     }
 
-    string word;
-    int wordCount = 0;
-    while (file >> word) {
-        wordCount++;
-    }
+    string temp;
+    int count = 0;
+    while (file >> temp) ++count;
 
-    return wordCount;
+    return count;
 }
 
-// Function to read words from a file into an array
-void wordarray(const string& file, vector<string>& words) {
-    ifstream inputFile(file);
-    if (!inputFile) {
-        cerr << "Error: Unable to open file: " << file << endl;
+// Loads words from a file into a vector
+void loadWords(const string& path, vector<string>& storage) {
+    ifstream fin(path);
+    if (!fin) {
+        cerr << "Unable to read from: " << path << endl;
         return;
     }
 
-    string word;
-    while (inputFile >> word) {
-        words.push_back(word);
+    string w;
+    while (fin >> w) {
+        storage.push_back(w);
     }
 }
 
-void occurarray(vector<int>&arr,vector<string>& words, vector<string>& uniqueWords) {
-    for (int i = 0; i < uniqueWords.size(); i++) {
+// Counts how many times each unique word appears in a file
+void generateFrequencyVector(const vector<string>& textWords, const vector<string>& uniqueWords, vector<int>& freq) {
+    for (const auto& word : uniqueWords) {
         int count = 0;
-        for (int j = 0; j < words.size(); j++) {
-            if (uniqueWords[i] == words[j]) {
-                count++;
-            }
+        for (const auto& txtWord : textWords) {
+            if (txtWord == word) ++count;
         }
-        arr.push_back(count);
+        freq.push_back(count);
     }
-    
 }
 
-void printoccurarray(vector<int>&arr) {
+// Nicely print a string vector
+void displayWords(const vector<string>& list) {
     cout << "[";
-    for (int i = 0; i < arr.size(); i++) {
-        cout << arr[i] << " ";
-    }
-    cout << "]";
-    cout << endl;
-}
-
-// Function to print words in an array neatly
-void printWordArray(const vector<string>& words) {
-    cout << "[";
-    for (int i = 0; i < words.size(); i++) {
-        cout << words[i];
-        if (i < words.size() - 1) cout << ", ";
+    for (size_t i = 0; i < list.size(); ++i) {
+        cout << list[i];
+        if (i < list.size() - 1) cout << ", ";
     }
     cout << "]\n";
 }
 
-void findcosinsimilarity(vector<int>&arrayA,vector<int>&arrayB){
-    float dotProduct = 0, magA = 0, magB = 0;
-    for(int i = 0; i < arrayA.size(); i++){
-        dotProduct += arrayA[i] * arrayB[i];
-        magA += arrayA[i] * arrayA[i];
-        magB += arrayB[i] * arrayB[i];
+// Print frequency values
+void showFrequencies(const vector<int>& freqVec) {
+    cout << "[";
+    for (size_t i = 0; i < freqVec.size(); ++i) {
+        cout << freqVec[i];
+        if (i < freqVec.size() - 1) cout << ", ";
     }
+    cout << "]\n";
+}
+
+// Calculate cosine similarity between two frequency vectors
+void calculateCosineSimilarity(const vector<int>& vecA, const vector<int>& vecB) {
+    double dotProd = 0.0, magA = 0.0, magB = 0.0;
+
+    for (size_t i = 0; i < vecA.size(); ++i) {
+        dotProd += vecA[i] * vecB[i];
+        magA += pow(vecA[i], 2);
+        magB += pow(vecB[i], 2);
+    }
+
     magA = sqrt(magA);
     magB = sqrt(magB);
-    float cosinsimilarity = dotProduct / (magA * magB);
-    cout << "Cosine similarity: " << cosinsimilarity << endl;
-    cout<< cosinsimilarity * 100 << "%" <<" Similarity"<< endl;
+
+    double similarity = (magA && magB) ? (dotProd / (magA * magB)) : 0.0;
+
+    cout << "Cosine Similarity: " << similarity << "\n";
+    cout << "Similarity Percentage: " << similarity * 100 << "%\n";
 }
 
 int main() {
-    string file1 = "C:\\Users\\priya\\OneDrive\\Documents\\file1.txt";
-    string file2 = "C:\\Users\\priya\\OneDrive\\Documents\\file2.txt";
-    string output = "C:\\Users\\priya\\OneDrive\\Documents\\merged.txt";
-    string unique = "C:\\Users\\priya\\OneDrive\\Documents\\unique.txt";
+    string path1 = "C:\\Users\\priya\\OneDrive\\Documents\\file1.txt";
+    string path2 = "C:\\Users\\priya\\OneDrive\\Documents\\file2.txt";
+    string mergedOut = "C:\\Users\\priya\\OneDrive\\Documents\\merged.txt";
+    string uniqueOut = "C:\\Users\\priya\\OneDrive\\Documents\\unique.txt";
 
-    // Merge unique words from the files
-    mergeUniqueWords(file1, file2, output, unique);
+    combineFiles(path1, path2, mergedOut, uniqueOut);
 
-    // Count words in files
-    int totalWordsf1 = countWordsInFile(file1);
-    int totalWordsf2 = countWordsInFile(file2);
-    int totalWordsu = countWordsInFile(unique);
+    int wc1 = wordCount(path1);
+    int wc2 = wordCount(path2);
+    int wcUnique = wordCount(uniqueOut);
 
-    cout << "Total words in file1: " << totalWordsf1 << endl;
-    cout << "Total words in file2: " << totalWordsf2 << endl;
-    cout << "Total unique words: " << totalWordsu << endl;
+    cout << "File1 Word Count: " << wc1 << endl;
+    cout << "File2 Word Count: " << wc2 << endl;
+    cout << "Unique Word Count: " << wcUnique << endl;
 
-    // Use dynamic arrays (vector)
-    vector<string> wordArrayf1, wordArrayf2, wordArrayu;
+    vector<string> wordsFile1, wordsFile2, uniqueWords;
+    loadWords(path1, wordsFile1);
+    loadWords(path2, wordsFile2);
+    loadWords(uniqueOut, uniqueWords);
 
-    wordarray(file1, wordArrayf1);
-    wordarray(file2, wordArrayf2);
-    wordarray(unique, wordArrayu);
+    cout << "Words from File1: ";
+    displayWords(wordsFile1);
 
-    // Print Wordarrays
-    cout << "Words in file1: ";
-    printWordArray(wordArrayf1);
+    cout << "Words from File2: ";
+    displayWords(wordsFile2);
 
-    cout << "Words in file2: ";
-    printWordArray(wordArrayf2);
+    cout << "List of Unique Words: ";
+    displayWords(uniqueWords);
 
-    cout << "Unique words: ";
-    printWordArray(wordArrayu);
+    vector<int> freqA, freqB;
+    generateFrequencyVector(wordsFile1, uniqueWords, freqA);
+    generateFrequencyVector(wordsFile2, uniqueWords, freqB);
 
-    // Compute word occurrences
-    vector<int>arrayA,arrayB;
-    occurarray(arrayA,wordArrayf1,wordArrayu);
-    occurarray(arrayB,wordArrayf2,wordArrayu);
+    cout << "Frequencies from File1: ";
+    showFrequencies(freqA);
 
-    cout<< "Array A:";
-    printoccurarray(arrayA);
+    cout << "Frequencies from File2: ";
+    showFrequencies(freqB);
 
-    cout<< "Array B:";
-    printoccurarray(arrayB);
-
-    // Calculate cosine similarity
-    findcosinsimilarity(arrayA,arrayB);
+    calculateCosineSimilarity(freqA, freqB);
 
     return 0;
 }
