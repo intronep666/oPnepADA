@@ -1,102 +1,101 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
 
 const int INF = 1e9;
 
-int countStages(vector<vector<int>>&Graph){
-int k = 1;//source node ka stage 1
-int u =0;
-for(int v = u+1;v<Graph.size();v++)
-{
-    if(Graph[u][v]!=INF){
-        u = v;
-        k++;
+// Function to estimate the number of stages from source to destination
+int getStageCount(vector<vector<int>>& adjMatrix) {
+    int stage = 1;
+    int current = 0;
+
+    for (int next = current + 1; next < adjMatrix.size(); ++next) {
+        if (adjMatrix[current][next] != INF) {
+            current = next;
+            stage++;
+        }
     }
-}
-return k;
+
+    return stage;
 }
 
-void MGP(vector<vector<int>>&Graph,int k){
-    int n = Graph.size();
-    vector<int> fdist(n, INF); // Minimum cost from each node to final node ko initialize kar do infinity se
-    vector<int> d(n, -1);     // Stores next node in shortest path ko initialize kar do -1 sw
+// Function to calculate shortest path using dynamic programming in multi-stage graph
+void shortestPathMultiStage(vector<vector<int>>& graph, int stages) {
+    int nodes = graph.size();
+    vector<int> cost(nodes, INF); // cost[i]: min cost to reach final node from i
+    vector<int> nextNode(nodes, -1); // nextNode[i]: best next step from i in the path
 
-    fdist[n-1] = 0; //final node ka cost 0 hoga
-    for(int j = n-2;j>=0;j--)
-    {
-        for(int r=j+1;r<n;r++)
-        {
-            if (Graph[j][r] != INF && Graph[j][r] != 0)// Valid edge
-             { 
-                if (Graph[j][r] + fdist[r] < fdist[j]) {
-                    fdist[j] = Graph[j][r] + fdist[r];
-                    d[j] = r; // next node ko store kar do  shortest path me 
+    cost[nodes - 1] = 0; // Final node has zero cost to itself
+
+    // Bottom-up computation of cost[] and nextNode[]
+    for (int i = nodes - 2; i >= 0; --i) {
+        for (int j = i + 1; j < nodes; ++j) {
+            if (graph[i][j] != INF && graph[i][j] != 0) {
+                int potentialCost = graph[i][j] + cost[j];
+                if (potentialCost < cost[i]) {
+                    cost[i] = potentialCost;
+                    nextNode[i] = j;
                 }
             }
         }
     }
-   
-  // Find minimum-cost path using d[]
-vector<int> p(k); // Path array
-p[0] = 1;  // First node (1-based indexing)
-p[k - 1] = n; // Last node (1-based indexing)
 
-for (int j = 1; j < k - 1; j++) {
-    p[j] = d[p[j - 1] - 1] + 1; // Convert 0-based to 1-based
-}
+    // Constructing the path using nextNode[]
+    vector<int> path(stages);
+    path[0] = 1;           // 1-based indexing
+    path[stages - 1] = nodes;
 
-// Output the minimum-cost path
-cout << "\nMinimum-cost path: ";
-for (int i = 0; i < k; i++) {
-    cout << p[i] << (i == k - 1 ? "\n" : " -> ");
-}
-
-
-   cout << "Minimum cost: " << fdist[0] << endl;
-
-
-}
-int main()
-{   const int INF = 1e9;
-    int n;
-    cout << "Enter number of nodes: ";
-    cin >> n;
-
-    // Graph initialization: Diagonal = 0, Others = INF
-    vector<vector<int>> Graph(n, vector<int>(n, INF));
-
-    for (int i = 0; i < n; i++) {
-        Graph[i][i] = 0; // Diagonal elements = 0
+    for (int i = 1; i < stages - 1; ++i) {
+        path[i] = nextNode[path[i - 1] - 1] + 1; // Convert from 0-based to 1-based
     }
 
-    int edges;
-    cout << "Enter number of edges: ";
-    cin >> edges;
+    // Output the path and cost
+    cout << "\nShortest Path (Minimum Cost Path): ";
+    for (int i = 0; i < stages; ++i) {
+        cout << path[i];
+        if (i != stages - 1) cout << " -> ";
+    }
+    cout << "\nTotal Minimum Cost: " << cost[0] << endl;
+}
 
-    cout << "Enter edges (u v cost) (1-based indexing):\n";
-    for (int i = 0; i < edges; i++) {
-        int u, v, cost;
-        cin >> u >> v >> cost;
-        Graph[u - 1][v - 1] = cost; // Convert to 0-based index
+int main() {
+    int vertices;
+    cout << "Enter total number of nodes: ";
+    cin >> vertices;
+
+    vector<vector<int>> adjMatrix(vertices, vector<int>(vertices, INF));
+
+    // Initializing diagonal to 0
+    for (int i = 0; i < vertices; ++i) {
+        adjMatrix[i][i] = 0;
     }
 
-    // Displaying the Graph
-    cout << "\nGraph Representation (Adjacency Matrix):\n";
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if (Graph[i][j] == INF)
+    int edgeCount;
+    cout << "Enter total number of edges: ";
+    cin >> edgeCount;
+
+    cout << "Provide edges in format (u v weight) using 1-based indexing:\n";
+    for (int i = 0; i < edgeCount; ++i) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adjMatrix[u - 1][v - 1] = w;
+    }
+
+    // Display adjacency matrix
+    cout << "\nAdjacency Matrix of Graph:\n";
+    for (int i = 0; i < vertices; ++i) {
+        for (int j = 0; j < vertices; ++j) {
+            if (adjMatrix[i][j] == INF)
                 cout << "INF\t";
             else
-                cout << Graph[i][j] << "\t";
+                cout << adjMatrix[i][j] << "\t";
         }
         cout << endl;
     }
 
-   int k = countStages(Graph);
-   cout<<"Number of Stages:"<<k<<endl;
-   MGP(Graph,k);
+    int stages = getStageCount(adjMatrix);
+    cout << "\nEstimated Number of Stages: " << stages << endl;
 
-   return 0;
+    shortestPathMultiStage(adjMatrix, stages);
 
+    return 0;
 }
-
