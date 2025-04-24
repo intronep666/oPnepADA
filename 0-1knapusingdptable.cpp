@@ -1,48 +1,52 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int knapsack(vector<int>& wt, vector<int>& val, int W) {
-    int n = wt.size();
-    vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
+// Function to compute the optimal knapsack value
+int findMaxValue(vector<int>& weights, vector<int>& values, int capacity) {
+    int itemCount = weights.size();
+    vector<vector<int>> table(itemCount + 1, vector<int>(capacity + 1, 0));
 
-    // Fill DP table
-    for (int i = 1; i <= n; i++) {
-        for (int w = 0; w <= W; w++) {
-            if (wt[i - 1] <= w) {
-                dp[i][w] = max(val[i - 1] + dp[i - 1][w - wt[i - 1]], dp[i - 1][w]);
+    // Build the table in bottom-up fashion
+    for (int i = 1; i <= itemCount; ++i) {
+        for (int cap = 0; cap <= capacity; ++cap) {
+            if (weights[i - 1] <= cap) {
+                int take = values[i - 1] + table[i - 1][cap - weights[i - 1]];
+                int skip = table[i - 1][cap];
+                table[i][cap] = max(take, skip);
             } else {
-                dp[i][w] = dp[i - 1][w];
+                table[i][cap] = table[i - 1][cap];
             }
         }
     }
 
-    // Trace back to find selected items
-    int w = W;
-    vector<int> selectedItems;
+    // Identify the items that were chosen
+    vector<int> chosenItems;
+    int remCapacity = capacity;
 
-    for (int i = n; i > 0 && w > 0; i--) {
-        if (dp[i][w] != dp[i - 1][w]) {
-            selectedItems.push_back(i - 1); // Item i-1 was taken
-            w -= wt[i - 1];                 // Reduce capacity
+    for (int i = itemCount; i > 0 && remCapacity > 0; --i) {
+        if (table[i][remCapacity] != table[i - 1][remCapacity]) {
+            chosenItems.push_back(i - 1);
+            remCapacity -= weights[i - 1];
         }
     }
 
-    // Print results
-    cout << "Maximum value: " << dp[n][W] << endl;
-    cout << "Selected item indices : ";
-    for (int idx : selectedItems) {
-        cout << idx+1 << " ";
+    // Display the result
+    cout << "Total Profit: " << table[itemCount][capacity] << "\n";
+    cout << "Items selected (1-based indices): ";
+    for (int idx : chosenItems) {
+        cout << (idx + 1) << " ";
     }
     cout << endl;
 
-    return dp[n][W];
+    return table[itemCount][capacity];
 }
 
 int main() {
-    vector<int> wt = {5, 4, 6,3};
-    vector<int> p  = {10, 40, 30, 50};
-    int W = 10;
+    vector<int> weights = {5, 4, 6, 3};
+    vector<int> profits = {10, 40, 30, 50};
+    int bagCapacity = 10;
 
-    cout << "Maximum value: " << knapsack(wt, p, W) << endl;
-  return 0;
+    findMaxValue(weights, profits, bagCapacity);
+
+    return 0;
 }
