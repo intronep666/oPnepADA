@@ -1,47 +1,58 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <cstdlib>
+#include <chrono>
+
 using namespace std;
 
-void selectionSort(long int arr[], int size) {
-    for (int i = 0; i < size - 1; i++) {
-        int minIndex = i;
-        for (int j = i + 1; j < size; j++) {
-            if (arr[j] < arr[minIndex]) {
-                minIndex = j;
+// Selection sort algorithm: sorts array in ascending order
+void performSelectionSort(long int data[], int length) {
+    for (int current = 0; current < length - 1; ++current) {
+        int smallest = current;
+
+        // Find the index of the minimum element in the remaining array
+        for (int next = current + 1; next < length; ++next) {
+            if (data[next] < data[smallest]) {
+                smallest = next;
             }
         }
-        if (minIndex != i) {
-            swap(arr[i], arr[minIndex]);
+
+        // Swap if the minimum is not at the current position
+        if (smallest != current) {
+            swap(data[current], data[smallest]);
         }
     }
 }
 
 int main() {
-    srand(time(0)); // Seed for random numbers
+    srand(static_cast<unsigned>(time(0))); // Seed for randomness
 
-    int n = 1000;
-    while (n <= 25000) {
-        double totalTime = 0.0;
+    int arraySize = 1000;
 
-        for (int i = 1; i <= 10; i++) {
-            long int arr[n];
-            
-            // Generate random array of size n
-            for (int j = 0; j < n; j++) {
-                arr[j] = rand() % n + 1;
+    // Test selection sort for different sizes
+    while (arraySize <= 25000) {
+        double accumulatedTime = 0.0;
+
+        for (int trial = 0; trial < 10; ++trial) {
+            long int sample[arraySize];
+
+            // Fill array with random integers
+            for (int index = 0; index < arraySize; ++index) {
+                sample[index] = rand() % arraySize + 1;
             }
 
-            auto start = chrono::high_resolution_clock::now();
-            selectionSort(arr, n);
+            // Time the sorting operation
+            auto begin = chrono::high_resolution_clock::now();
+            performSelectionSort(sample, arraySize);
             auto end = chrono::high_resolution_clock::now();
 
-            chrono::duration<double> duration = end - start;
-            totalTime += duration.count();
+            chrono::duration<double> timeSpan = end - begin;
+            accumulatedTime += timeSpan.count();
         }
 
-        double avgTime = totalTime / 10;
-        cout << "Size: " << n << ", Time: " << avgTime << " seconds" << endl;
+        double averageDuration = accumulatedTime / 10.0;
+        cout << "Array Size: " << arraySize << ", Avg Time: " << averageDuration << " seconds" << endl;
 
-        n += 1000; // Increment n properly
+        arraySize += 1000; // Step to next array size
     }
 
     return 0;
