@@ -1,36 +1,42 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
 using namespace std;
 
-struct Activity {
-    int start, finish;
+struct Event {
+    int begin, end;
 };
 
-bool compare(Activity a1, Activity a2) {
-    return a1.finish < a2.finish;
+// Custom sorting function to arrange events by their end time
+bool endTimeSorter(const Event& e1, const Event& e2) {
+    return e1.end < e2.end;
 }
 
-void activitySelection(vector<Activity> activities) {
-    //activities ko sort kar diya increasing order me unke finish time ke according
-    sort(activities.begin(), activities.end(), compare);
+void chooseEvents(const vector<Event>& events) {
+    // Sort a copy of the input events by their end time
+    vector<Event> schedule = events;
+    sort(schedule.begin(), schedule.end(), endTimeSorter);
 
-    cout << "Selected Activities: \n";
-    //first activity ko choose kiya aur uska finish time ,lastfinishtime me store kar diya 
-    int lastFinishTime = activities[0].finish;
-    cout << "(" << activities[0].start << ", " << activities[0].finish << ")\n";
-    
-    for (int i = 1; i < activities.size(); i++) {
-        if (activities[i].start >= lastFinishTime) {
-            cout << "(" << activities[i].start << ", " << activities[i].finish << ")\n";
-            lastFinishTime = activities[i].finish;
+    cout << "Optimal Set of Non-Overlapping Events:\n";
+
+    // Select the first event by default
+    int timeLimit = schedule[0].end;
+    cout << "(" << schedule[0].begin << ", " << schedule[0].end << ")\n";
+
+    // Iterate through the rest of the events
+    for (size_t i = 1; i < schedule.size(); ++i) {
+        if (schedule[i].begin >= timeLimit) {
+            cout << "(" << schedule[i].begin << ", " << schedule[i].end << ")\n";
+            timeLimit = schedule[i].end; // Update the current end time
         }
     }
 }
 
-
 int main() {
-    vector<Activity> activities = {{1, 3}, {2, 5}, {3, 9}, {0, 6}, {5, 7}, {8, 9}};
-    
-    activitySelection(activities);
-    
+    vector<Event> timeline = {
+        {1, 3}, {2, 5}, {3, 9}, {0, 6}, {5, 7}, {8, 9}
+    };
+
+    chooseEvents(timeline);
     return 0;
 }
