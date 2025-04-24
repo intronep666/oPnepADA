@@ -1,58 +1,56 @@
 #include <iostream>
-#include <chrono>
 #include <vector>
-#include <cstdlib> // for rand()
+#include <chrono>
+#include <cstdlib>
 
 using namespace std;
-using namespace std::chrono;
+using namespace chrono;
 
-int main() 
-{ 
-    int n = 1000; 
+// Insertion sort implementation
+void performInsertionSort(vector<int>& data) {
+    int size = data.size();
+    for (int i = 1; i < size; ++i) {
+        int key = data[i];
+        int j = i - 1;
+        while (j >= 0 && data[j] > key) {
+            data[j + 1] = data[j];
+            --j;
+        }
+        data[j + 1] = key;
+    }
+}
 
-    while(n <= 10000) 
-    { 
-        long long total_time = 0; // Store time in microseconds 
+// Function to generate random integers in a vector
+vector<int> generateRandomArray(int size) {
+    vector<int> result(size);
+    for (int i = 0; i < size; ++i) {
+        result[i] = rand();  // Random number generation
+    }
+    return result;
+}
 
-        for(int i = 1; i <= 10; i++)  // Loop runs 10 times
-        { 
-            // Step 1 - generate a random array of size n 
-            vector<int> arr(n); 
-            for(int j = 0; j < n; j++) 
-            { 
-                arr[j] = rand(); // Assign random values
-            } 
+int main() {
+    int arraySize = 1000;
 
-            // Measure the start time 
-            auto start_time = high_resolution_clock::now(); 
+    while (arraySize <= 10000) {
+        long long accumulatedTime = 0;
 
-            // Step 2 - sort the array using insertion sort 
-            for(int i = 1; i < n; i++) 
-            { 
-                int j = i - 1; 
-                int temp = arr[i]; 
-                while(j >= 0 && arr[j] > temp) 
-                { 
-                    arr[j + 1] = arr[j]; 
-                    j = j - 1; 
-                } 
-                arr[j + 1] = temp; 
-            } 
+        for (int iteration = 0; iteration < 10; ++iteration) {
+            vector<int> testArray = generateRandomArray(arraySize);
 
-            // Measure the final time  
-            auto end_time = high_resolution_clock::now(); 
-            auto duration = duration_cast<microseconds>(end_time - start_time).count(); 
+            auto start = high_resolution_clock::now();
+            performInsertionSort(testArray);
+            auto end = high_resolution_clock::now();
 
-            total_time += duration; 
-        } 
+            auto elapsed = duration_cast<microseconds>(end - start).count();
+            accumulatedTime += elapsed;
+        }
 
-        double avg_time = total_time / 10.0 / 1000.0; // Convert to milliseconds
+        double averageTimeMs = accumulatedTime / 10.0 / 1000.0;
+        cout << "Array Length: " << arraySize << " | Average Time: " << averageTimeMs << " ms" << endl;
 
-        // Print - showing n on x-axis and avg_time on y-axis 
-        cout << "Size of array: " << n << " | Avg Time (ms): " << avg_time << endl; 
-        
-        n += 1000; 
-    } 
+        arraySize += 1000;
+    }
 
-    return 0;  
+    return 0;
 }
