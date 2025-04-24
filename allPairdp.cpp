@@ -1,40 +1,44 @@
-#include<bits/stdc++.h> 
-using namespace std ; 
-void floydWarshall(vector<vector<int>> &adj, int n) 
-{ 
-for(int k=0; k<n; k++) 
-{ 
-for(int i=0; i<n; i++) 
-{ 
-for(int j=0; j<n; j++) 
-{ 
-if( ((adj[i][j] == -1) || (adj[i][j] > adj[i][k] + adj[k][j])) && (adj[k][j] 
-!= -1 && adj[i][k] != -1) ) 
-{ 
-adj[i][j] = adj[i][k] + adj[k][j]; 
-} 
-} 
-} 
-} 
-} 
-int main() { 
-int n=4 ; 
-// -1 in graph represents there is no direct edge between that two vertices 
-// weights in graph can be negative but not -1(as it represents INFINITY) 
-vector<vector<int>> graph = { 
-        {0,9,-4,-1}, 
-        {6,0,-1,2}, 
-        {-1,5,0,-1}, 
-        {-1,-1,1,0} 
-    }; 
- 
-    floydWarshall(graph,n); 
-     
-    for(int i = 0; i<graph.size(); i++) { 
-        for(int j = 0; j<graph.size(); j++) { 
-            cout<<graph[i][j]<<" \t "; 
-        } 
-        cout<<endl; 
-    } 
-    return 0; 
+#include <iostream>
+#include <vector>
+using namespace std;
+
+const int INF = -1; // Representing "no direct path"
+
+void shortestPaths(vector<vector<int>>& matrix, int size) {
+    // Apply Floyd-Warshall Algorithm
+    for (int via = 0; via < size; ++via) {
+        for (int src = 0; src < size; ++src) {
+            for (int dest = 0; dest < size; ++dest) {
+                if (matrix[src][via] != INF && matrix[via][dest] != INF) {
+                    int newDist = matrix[src][via] + matrix[via][dest];
+                    if (matrix[src][dest] == INF || newDist < matrix[src][dest]) {
+                        matrix[src][dest] = newDist;
+                    }
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    int nodes = 4;
+
+    vector<vector<int>> costMatrix = {
+        {0, 9, -4, -1},
+        {6, 0, -1, 2},
+        {-1, 5, 0, -1},
+        {-1, -1, 1, 0}
+    };
+
+    shortestPaths(costMatrix, nodes);
+
+    cout << "All-Pairs Shortest Path Matrix:\n";
+    for (const auto& row : costMatrix) {
+        for (int val : row) {
+            cout << val << "\t";
+        }
+        cout << "\n";
+    }
+
+    return 0;
 }
