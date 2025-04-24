@@ -1,99 +1,58 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-void mergeSort(long int arr[], long int low, long int high);
-void merge(long int arr[], long int low, long int mid, long int high);
 
-void mergeSort(long int arr[],long int low,long int high)
-{   if(low>=high)return;
-    long int mid=(low+high)/2;
-    //right half
-    mergeSort(arr,low,mid);
-    //left half
-    mergeSort(arr,mid+1,high);
-    //for merging
-    merge(arr,low,mid,high);
+// Function to perform merge operation
+void combine(long int arr[], long int left, long int mid, long int right) {
+    vector<long int> temp(right - left + 1);
+    long int i = left, j = mid + 1, k = 0;
+
+    // Merging the two halves
+    while (i <= mid && j <= right) {
+        if (arr[i] <= arr[j])
+            temp[k++] = arr[i++];
+        else
+            temp[k++] = arr[j++];
+    }
+
+    while (i <= mid) temp[k++] = arr[i++];
+    while (j <= right) temp[k++] = arr[j++];
+
+    for (long int p = 0; p < temp.size(); p++)
+        arr[left + p] = temp[p];
 }
-void merge(long int arr[],long int low,long int mid,long int high)
-{
-   long int i=low;
-    long int j=mid+1;
-    long int k=0;
-   vector<long int> temp(high - low + 1);// Allocate the temporary array with the correct size
-    while(i<=mid&&j<=high)
-    {
-        if(arr[i]<=arr[j])
-        {
-          temp[k]=arr[i];
-          i++;
-          k++;
+
+// Recursive merge sort implementation
+void sortMerge(long int arr[], long int low, long int high) {
+    if (low >= high) return;
+
+    long int mid = low + (high - low) / 2;
+    sortMerge(arr, low, mid);
+    sortMerge(arr, mid + 1, high);
+    combine(arr, low, mid, high);
+}
+
+int main() {
+    long int size = 10000;
+    int trials = 10;
+    cout << "ArraySize, TimeTaken(sec)" << endl;
+
+    for (int run = 0; run < trials; run++) {
+        vector<long int> data(size);
+
+        // Populate with random data
+        for (int i = 0; i < size; i++) {
+            data[i] = rand() % size + 1;
         }
-        else{
-            temp[k]=arr[j];
-            j++;
-            k++;
-        }
+
+        auto begin = chrono::high_resolution_clock::now();
+        sortMerge(data.data(), 0, size - 1);
+        auto finish = chrono::high_resolution_clock::now();
+
+        chrono::duration<double> elapsed = finish - begin;
+        cout << size << ", " << elapsed.count() << endl;
+
+        size += 10000;
     }
-    while(i<=mid)
-    {
-        temp[k]=arr[i];
-        k++;
-        i++;
-    }
-    while(j<=high)
-    {
-        temp[k]=arr[j];
-        k++;
-        j++;
-    }
-   for(long int i=low,k=0;i<=high;i++,k++)
-   {
-    arr[i]=temp[k];
-   }
+
+    return 0;
 }
-int main()
-{
-    long int n = 10000; 
-    int it = 0; 
-  
-    // Arrays to store time duration 
-    // of sorting algorithms 
-    double  time[10]; 
-    // // Seed the random number generator
-    //  srand(time(0));
-
-  
-    cout<<"size, time\n"; 
-  
-    // Performs 10 iterations 
-    while (it < 10) { 
-        long int a[n];
-
-  
-        // generating n random numbers 
-        // storing them in arrays a, b, c 
-        for (int i = 0; i < n; i++) { 
-            long int no = rand() % n + 1; 
-            a[i] = no; 
-            
-        } 
-
-        // merge sort 
-         auto start = chrono::high_resolution_clock::now(); 
-        mergeSort(a,0,n-1); 
-        auto end = chrono::high_resolution_clock::now();
-        
-        chrono::duration<double> duration = end - start;
-        time[it] = duration.count();
-  
-
-    cout << n << ", "<< time[it] << ","<<endl;
-
-        // increases the size of array by 10000 
-
-     n+=10000;
-
-     it++;
-}
-    return 0; 
-}
-
