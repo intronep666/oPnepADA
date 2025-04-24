@@ -1,36 +1,40 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <cmath>
 using namespace std;
 
- 
-int n;
-int x[100];
-bool place(int k, int i) {
-    for (int j = 1; j < k; j++) {
-        if (x[j] == i || abs(x[j] - i) == abs(j - k))
-            return false; 
+int totalQueens;
+int board[100];
+
+// Function to check if the queen can be safely placed at (row, col)
+bool isSafe(int currentRow, int column) {
+    for (int prevRow = 1; prevRow < currentRow; prevRow++) {
+        if (board[prevRow] == column || abs(board[prevRow] - column) == abs(prevRow - currentRow)) {
+            return false;
+        }
     }
     return true;
 }
 
-void NQueen(int k) {
-    for (int i = 1; i <= n; i++) {
-        if (place(k, i)) {
-            x[k] = i;
-            if (k == n) {
-                
-                for (int j = 1; j <= n; j++)
-                    cout << x[j] << " ";
+// Recursive function to solve N-Queens problem
+void solveNQueens(int row) {
+    for (int col = 1; col <= totalQueens; col++) {
+        if (isSafe(row, col)) {
+            board[row] = col;
+            if (row == totalQueens) {
+                for (int i = 1; i <= totalQueens; i++) {
+                    cout << board[i] << " ";
+                }
                 cout << endl;
             } else {
-                NQueen(k + 1);
+                solveNQueens(row + 1);
             }
         }
     }
 }
 
 int main() {
-    cout << "Enter number of queens: ";
-    cin >> n;
-    NQueen(1); 
+    cout << "Enter the number of queens: ";
+    cin >> totalQueens;
+    solveNQueens(1);
     return 0;
 }
