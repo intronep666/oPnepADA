@@ -1,31 +1,42 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+
 using namespace std;
 
-void jaccard(vector<int> arr1, vector<int> arr2) {
-    // Convert arrays to sets for unique elements
-    unordered_set<int> set1(arr1.begin(), arr1.end());
-    unordered_set<int> set2(arr2.begin(), arr2.end());
+// Function to compute Jaccard similarity between two integer vectors
+void computeJaccardSimilarity(const vector<int>& a, const vector<int>& b) {
+    unordered_set<int> uniqueA(a.begin(), a.end());
+    unordered_set<int> uniqueB(b.begin(), b.end());
+    unordered_set<int> combinedSet;
 
-    int intersect = 0;
-    unordered_set<int> union_set = set1;
+    int commonElements = 0;
 
-    // Count intersection
-    for (int num : set2) {
-        if (set1.count(num)) {
-            intersect++;
+    // Count common elements
+    for (const int& element : uniqueB) {
+        if (uniqueA.find(element) != uniqueA.end()) {
+            ++commonElements;
         }
-        union_set.insert(num); // Union of both sets
+        combinedSet.insert(element);
     }
 
-    int uni = union_set.size(); // Total unique elements in both sets
+    // Add elements from the first set to complete the union
+    for (const int& element : uniqueA) {
+        combinedSet.insert(element);
+    }
 
-    cout << "Jaccard Coefficient of Similarity = " << (double)intersect / uni << endl;
+    int totalUnique = combinedSet.size();
+
+    double jaccardIndex = static_cast<double>(commonElements) / totalUnique;
+
+    cout << "Jaccard Similarity Coefficient = " << jaccardIndex << endl;
 }
 
 int main() {
-    vector<int> arr1 = {0, 1, 2, 5, 6};
-    vector<int> arr2 = {0, 2, 3, 4, 5, 7, 9};
-    
-    jaccard(arr1, arr2);
+    vector<int> list1 = {0, 1, 2, 5, 6};
+    vector<int> list2 = {0, 2, 3, 4, 5, 7, 9};
+
+    computeJaccardSimilarity(list1, list2);
+
     return 0;
 }
