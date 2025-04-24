@@ -1,75 +1,74 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <climits>
 using namespace std;
 
-#define V 9
+const int NUM_VERTICES = 9;
 
-int minDistance(int dist[], bool sptSet[])
-{
-	
-	int min = INT_MAX, min_index;
+// Selects the vertex with the minimum distance value
+int selectMinVertex(int distance[], bool finalized[]) {
+    int minValue = INT_MAX;
+    int selectedVertex = -1;
 
-	for (int v = 0; v < V; v++)
-		if (sptSet[v] == false && dist[v] <= min)
-			min = dist[v], min_index = v;
+    for (int i = 0; i < NUM_VERTICES; ++i) {
+        if (!finalized[i] && distance[i] <= minValue) {
+            minValue = distance[i];
+            selectedVertex = i;
+        }
+    }
 
-	return min_index;
+    return selectedVertex;
 }
 
-
-void printSolution(int dist[], int n)
-{
-	printf("Vertex Shortest Distance from Source\n");
-	for (int i = 0; i < V; i++)
-		printf("\t%d \t %d\n", i, dist[i]);
+// Displays the final shortest distances from the source node
+void displayResults(int distance[]) {
+    cout << "Node\tDistance from Source" << endl;
+    for (int i = 0; i < NUM_VERTICES; ++i) {
+        cout << i << "\t\t" << distance[i] << endl;
+    }
 }
 
+// Core function implementing Dijkstra's Algorithm
+void runDijkstra(int adjMatrix[NUM_VERTICES][NUM_VERTICES], int source) {
+    int distance[NUM_VERTICES];
+    bool visited[NUM_VERTICES];
 
-void dijkstra(int graph[V][V], int src)
-{
-	int dist[V]; 
+    for (int i = 0; i < NUM_VERTICES; ++i) {
+        distance[i] = INT_MAX;
+        visited[i] = false;
+    }
 
-	bool sptSet[V]; 
-	for (int i = 0; i < V; i++)
-		dist[i] = INT_MAX, sptSet[i] = false;
+    distance[source] = 0;
 
-	
-	dist[src] = 0;
+    for (int count = 0; count < NUM_VERTICES - 1; ++count) {
+        int u = selectMinVertex(distance, visited);
+        visited[u] = true;
 
-	
-	for (int count = 0; count < V - 1; count++) {
-		
- 		int u = minDistance(dist, sptSet);
+        for (int v = 0; v < NUM_VERTICES; ++v) {
+            if (!visited[v] && adjMatrix[u][v] != 0 && distance[u] != INT_MAX
+                && distance[u] + adjMatrix[u][v] < distance[v]) {
+                distance[v] = distance[u] + adjMatrix[u][v];
+            }
+        }
+    }
 
-		
-		sptSet[u] = true;
-
-		
-		for (int v = 0; v < V; v++)
-
-			
-			if (!sptSet[v] && graph[u][v]&& dist[u] != INT_MAX&& dist[u] + graph[u][v] < dist[v])
-             dist[v] = dist[u] + graph[u][v];
-	}
-
-	
-	printSolution(dist, V);
+    displayResults(distance);
 }
 
+int main() {
+    int adjMatrix[NUM_VERTICES][NUM_VERTICES] = {
+        { 0, 4, 0, 0, 0, 0, 0, 8, 0 },
+        { 4, 0, 8, 0, 0, 0, 0, 11, 0 },
+        { 0, 8, 0, 7, 0, 4, 0, 0, 2 },
+        { 0, 0, 7, 0, 9, 14, 0, 0, 0 },
+        { 0, 0, 0, 9, 0, 10, 0, 0, 0 },
+        { 0, 0, 4, 14, 10, 0, 2, 0, 0 },
+        { 0, 0, 0, 0, 0, 2, 0, 1, 6 },
+        { 8, 11, 0, 0, 0, 0, 1, 0, 7 },
+        { 0, 0, 2, 0, 0, 0, 6, 7, 0 }
+    };
 
-int main()
-{
-	
-	int graph[V][V] = { { 0, 4, 0, 0, 0, 0, 0, 8, 0 },
-						{ 4, 0, 8, 0, 0, 0, 0, 11, 0 },
-						{ 0, 8, 0, 7, 0, 4, 0, 0, 2 },
-						{ 0, 0, 7, 0, 9, 14, 0, 0, 0 },
-						{ 0, 0, 0, 9, 0, 10, 0, 0, 0 },
-						{ 0, 0, 4, 14, 10, 0, 2, 0, 0 },
-						{ 0, 0, 0, 0, 0, 2, 0, 1, 6 },
-						{ 8, 11, 0, 0, 0, 0, 1, 0, 7 },
-						{ 0, 0, 2, 0, 0, 0, 6, 7, 0 } };
+    int startVertex = 0;
+    runDijkstra(adjMatrix, startVertex);
 
-	dijkstra(graph, 0);
-
-	return 0;
+    return 0;
 }
