@@ -1,29 +1,34 @@
-// find max and min element from an array using divide and conquer method 
- 
-#include<iostream> 
-using namespace std ; 
- 
-pair<int,int> maxMin(int arr[], int n, int s, int e) 
-{ 
-    // base case 
-    if(s==e) return {arr[s],arr[s]} ; // single element in array 
- 
-    int mid = s + (e-s)/2 ; 
- 
-    pair<int,int> leftMaxMin = maxMin(arr,n,s,mid) ; 
-    pair<int,int> rightMaxMin = maxMin(arr,n,mid+1,e) ; 
- 
-    int maxi = max(leftMaxMin.first,rightMaxMin.first) ; 
-    int mini = min(leftMaxMin.second,rightMaxMin.second) ; 
- 
-    return {maxi,mini} ; 
-} 
-int main() 
-{ 
-    int arr[] = {12, 7, 19, 5, 18, 3, 8, 11, 22, 10}; 
-    int n = sizeof(arr)/sizeof(arr[0]); 
-    pair<int,int> pmaxmin = maxMin(arr, n, 0, n-1); 
-cout<<"Maximum element: "<<pmaxmin.first<<endl; 
-cout<<"Minimum element: "<<pmaxmin.second<<endl; 
-return 0 ; 
+#include <iostream>
+using namespace std;
+
+// Function to get max and min from a subarray using divide and conquer
+pair<int, int> findExtremes(int data[], int start, int end) {
+    // If only one element, it is both min and max
+    if (start == end)
+        return {data[start], data[start]};
+
+    // Divide the array into two halves
+    int middle = start + (end - start) / 2;
+
+    // Recursive calls for both halves
+    pair<int, int> left = findExtremes(data, start, middle);
+    pair<int, int> right = findExtremes(data, middle + 1, end);
+
+    // Combine results
+    int maxVal = max(left.first, right.first);
+    int minVal = min(left.second, right.second);
+
+    return {maxVal, minVal};
+}
+
+int main() {
+    int elements[] = {12, 7, 19, 5, 18, 3, 8, 11, 22, 10};
+    int size = sizeof(elements) / sizeof(elements[0]);
+
+    pair<int, int> result = findExtremes(elements, 0, size - 1);
+
+    cout << "Highest Value: " << result.first << endl;
+    cout << "Lowest Value: " << result.second << endl;
+
+    return 0;
 }
