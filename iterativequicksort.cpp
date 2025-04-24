@@ -1,113 +1,102 @@
-#include<bits/stdc++.h>
-using namespace std;
-//iterarive quickSort
+#include <iostream>
+#include <stack>
+#include <cstdlib>
+#include <chrono>
 
-// Function to partition the array on the basis of pivot element
-int Partition(long int arr[],long int low,long int high)
-{
-    long  int pivot = arr[low];
-    long int i =low+1;
-    long int j=high;
-  while(i<=j)
-  {
-    while(i<=j&&arr[i]<=pivot)
-    {
-      i++;
+using namespace std;
+using namespace chrono;
+
+// Partition function using Lomuto-style logic but for iterative quicksort
+int partitionIterative(long int array[], int low, int high) {
+    long int pivot = array[low];
+    int left = low + 1;
+    int right = high;
+
+    while (left <= right) {
+        while (left <= right && array[left] <= pivot) left++;
+        while (left <= right && array[right] > pivot) right--;
+
+        if (left < right) {
+            swap(array[left], array[right]);
+        }
     }
-    while(i<=j&&arr[j]>pivot)
-    {
-      j--;
-    }
-    if(i<j)
-    {
-      swap(arr[i],arr[j]);
-    }   
-  }
-    swap(arr[low],arr[j]);
-    return j;
+
+    swap(array[low], array[right]);
+    return right;
 }
 
-// Function to perform quicksort
+// Iterative QuickSort using a stack and do-while loop
+void iterativeQuickSort(long int array[], int start, int end) {
+    stack<int> bounds;
 
-//using do while loop
-void QSI(long int arr[],int low,int high)
-{
-    stack<int>st;
-    do{
-        while(low<high)
-        {
-            int j = Partition(arr,low,high);
-            if((j-low)>(high-j))
-            {   
-                
-                st.push(low);
-                st.push(j-1);
-                low = j+1;
-            }
-            else{
-                
-                st.push(j+1);
-                st.push(high);
-                high = j-1;
-                
+    do {
+        while (start < end) {
+            int pivotIndex = partitionIterative(array, start, end);
+
+            if (pivotIndex - start > end - pivotIndex) {
+                bounds.push(start);
+                bounds.push(pivotIndex - 1);
+                start = pivotIndex + 1;
+            } else {
+                bounds.push(pivotIndex + 1);
+                bounds.push(end);
+                end = pivotIndex - 1;
             }
         }
-        if(st.empty()) return;
-        high = st.top();
-        st.pop();
-        low = st.top();
-        st.pop();
-    }while(true);
-            
+
+        if (bounds.empty()) break;
+
+        end = bounds.top(); bounds.pop();
+        start = bounds.top(); bounds.pop();
+
+    } while (true);
 }
 
-// Function to check if array is sorted or not
-// Function to check if array is sorted
-bool isSorted(long int arr[], int n) {
-    for (int i = 1; i < n; i++) {
-        if (arr[i] < arr[i - 1]) return false;
+// Verify if the array is sorted
+bool verifySorted(const long int arr[], int len) {
+    for (int i = 1; i < len; ++i) {
+        if (arr[i - 1] > arr[i]) return false;
     }
     return true;
 }
 
+int main() {
+    srand(static_cast<unsigned int>(time(0)));
 
-int main()
-{
-    srand(time(0)); // Seed for random numbers
+    int size = 1000;
 
-    int n = 1000;
-    while (n <= 10000) {
-        double totalTime = 0.0;
+    while (size <= 10000) {
+        double totalElapsedTime = 0;
 
-        for (int i = 1; i <= 10; i++) {
-            long int arr[n];
-            
-            // Generate random array of size n
-            for (int j = 0; j < n; j++) {
-                arr[j] = rand() % n + 1;
+        for (int trial = 0; trial < 10; ++trial) {
+            long int* data = new long int[size];
+
+            // Populate the array with random numbers
+            for (int i = 0; i < size; ++i) {
+                data[i] = rand() % size + 1;
             }
 
-            auto start = chrono::high_resolution_clock::now();
-            QSI(arr, 0, n - 1);
-            auto end = chrono::high_resolution_clock::now();
+            auto begin = high_resolution_clock::now();
+            iterativeQuickSort(data, 0, size - 1);
+            auto finish = high_resolution_clock::now();
 
-            chrono::duration<double> duration = end - start;
-            totalTime += duration.count();
-            // Validate sorting
-            if (!isSorted(arr, n)) {
-                cout << "Sorting failed for size " << n << endl;
-                return 1;
+            chrono::duration<double> elapsed = finish - begin;
+            totalElapsedTime += elapsed.count();
+
+            if (!verifySorted(data, size)) {
+                cout << "Error: Sorting failed at size " << size << endl;
+                delete[] data;
+                return -1;
             }
 
+            delete[] data;
         }
 
-        double avgTime = totalTime / 10;
-        cout << "Size: " << n << ", Time: " << avgTime << " seconds" << endl;
+        double averageDuration = totalElapsedTime / 10;
+        cout << "Array Size: " << size << " | Avg Time: " << averageDuration << " seconds" << endl;
 
-        n += 1000; // Increment n properly
+        size += 1000;
     }
 
     return 0;
 }
-// Time complexity: O(nlogn) in average case and O(n^2) in worst case
-
